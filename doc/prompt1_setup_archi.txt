@@ -1,0 +1,31 @@
+Tu es expert React Native + Expo. Crée un nouveau projet Expo avec la structure suivante :
+
+- Expo SDK 51+, TypeScript strict
+- Expo Router v3 (file-based routing)
+- Structure de dossiers :
+  src/
+    app/          → routes Expo Router
+    components/   → composants réutilisables
+    stores/       → état global (Zustand)
+    hooks/        → hooks personnalisés
+    services/     → parsing URLs, API metadata
+    types/        → interfaces TypeScript globales
+    constants/    → couleurs, tailles, breakpoints
+    utils/        → fonctions utilitaires
+
+Installe les dépendances suivantes et explique le rôle de chacune :
+- zustand (state management)
+- @react-native-async-storage/async-storage (persistance locale)
+- expo-av ou expo-video (lecture vidéo)
+- react-native-reanimated 3 (animations)
+- react-native-gesture-handler (gestes)
+- expo-blur (effets visuels)
+- expo-haptics (retours haptiques)
+- expo-linear-gradient (dégradés)
+
+Définis le fichier types/index.ts avec les interfaces :
+- Video { id, url, title, thumbnail, duration, source ('youtube'|'vimeo'|'dailymotion'|'other'), addedAt, isFavorite }
+- Playlist { id, name, description, category, videos, viewMode ('list'|'stack'), createdAt, coverImage? }
+- AppSettings { theme ('dark'|'light'), defaultViewMode }
+
+Génère également le fichier app/_layout.tsx configurant GestureHandlerRootView et le provider Zustand.

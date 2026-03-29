@@ -1,0 +1,26 @@
+Crée un design system complet pour l'app VideoHub, inspiré du screenshot fourni (interface de type streaming, dark & light mode).
+
+Dans constants/theme.ts, définis :
+
+COULEURS :
+- Dark mode : background #1A1D2E (anthracite bleu-nuit), surface #252838, card #2D3147, accent #6C63FF (violet)
+- Light mode : background #F5F5F7, surface #FFFFFF, card # FFFFFF, accent #5A52E0
+- Textes, bordures, états (success, warning, danger) pour chaque mode
+- Overlay thumbnail : dégradé bas vers transparent rgba(0,0,0,0.7)
+
+TYPOGRAPHIE :
+- fontSizes : xs(11), sm(13), md(15), lg(17), xl(20), xxl(28), display(36)
+- fontWeights : regular(400), medium(500), semibold(600), bold(700)
+- lineHeights associées
+
+SPACING : échelle 4px (4,8,12,16,20,24,32,40,48,64)
+
+RADIUS : sm(8), md(12), lg(16), xl(24), full(9999)
+
+SHADOWS : cartes légères, cartes elevated (pour le mode empilé)
+
+Crée un hook useTheme() retournant le thème courant selon le store settings.
+Crée un contexte ThemeContext et un provider à envelopper dans _layout.tsx.
+Génère un composant ThemedView et ThemedText de base.
+
+Crée aussi un bouton ThemeToggle (icône soleil/lune) à placer dans le header, qui switche le thème et le persiste via Zustand + AsyncStorage.

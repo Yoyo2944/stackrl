@@ -1,0 +1,25 @@
+Crée l'écran de lecture vidéo dans app/video/[id].tsx.
+
+Stratégie de lecture selon la source :
+- YouTube & Vimeo → WebView avec URL embed (iframe player API)
+  - YouTube : https://www.youtube.com/embed/{id}?autoplay=1&rel=0&modestbranding=1
+  - Vimeo : https://player.vimeo.com/video/{id}?autoplay=1
+- Fichiers directs (MP4) → expo-video natif
+
+Layout :
+- Lecteur en haut (ratio 16:9, fond noir)
+- Gestes : double-tap gauche/droite → ±10s (animation flash), pinch pour plein écran
+- Passage en plein écran : orientation forcée landscape avec expo-screen-orientation
+- Barre de titre + back button en overlay (disparaît après 3s d'inactivité, réapparaît au tap)
+
+Section sous le lecteur :
+- Titre complet de la vidéo
+- Source + bouton "Ouvrir dans l'app native" (YouTube, Vimeo...)
+- Playlist d'appartenance avec miniature de la suivante
+- Bouton "Vidéo suivante" auto-play optionnel (paramètre dans settings)
+
+Sauvegarde de la progression :
+- useVideoProgress hook → sauvegarde la position toutes les 5s dans le store
+- Reprise automatique au prochain lancement
+
+Ajoute une animation d'entrée : le lecteur slide depuis le bas avec une légère élasticité (spring animation Reanimated).

@@ -1,0 +1,25 @@
+Crée le système de bascule entre vue liste et vue empilée dans VideoHub.
+
+Composant ViewModeToggle.tsx :
+- Bouton persistant : FAB (Floating Action Button) en bas à droite de l'écran playlist
+- Design : fond accent (violet), icônes SVG inline distinctes pour chaque mode
+  - Mode liste : 3 lignes horizontales avec miniatures
+  - Mode empilé : cartes en perspective superposées (vue de dessus en diagonale)
+- Tooltip au premier usage : "Essaie la vue empilée !" avec petite flèche
+
+Animation de transition liste → pile :
+- Phase 1 (200ms) : les VideoCards de la liste se réduisent (scale 1→0.8, opacity 1→0) en stagger depuis le bas
+- Phase 2 (300ms) : les StackedCards entrent depuis le bas en perspective, chacune avec un délai de 60ms
+- Interpolation douce avec withSequence et withDelay (Reanimated)
+
+Animation de transition pile → liste :
+- La carte active explose vers les 4 coins (scale 1→1.1 puis se désassemble en cards de liste)
+- En pratique : fade cross entre les deux vues avec un withTiming 250ms
+
+Persistance du mode :
+- Le mode choisi est sauvegardé par playlist (champ viewMode dans Playlist)
+- L'app mémorise le dernier mode utilisé globalement dans useSettingsStore
+
+Ajoute aussi un HapticFeedback.impactMedium() au moment du toggle pour renforcer l'interaction.
+
+Le toggle doit être accessible même pendant le scroll de la liste (position: absolute en dehors du FlatList).

@@ -1,11 +1,12 @@
 {
   "expo": {
-    "name": "stackrl-app",
-    "slug": "stackrl-app",
+    "name": "Stackrl",
+    "slug": "stackrl",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
+    "scheme": "stackrl",
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -25,6 +26,10 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      "expo-router",
+      "expo-video"
+    ]
   }
 }

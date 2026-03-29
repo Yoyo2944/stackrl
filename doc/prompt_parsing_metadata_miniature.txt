@@ -1,0 +1,28 @@
+Améliore le service de metadata pour VideoHub et crée un système robuste de miniatures.
+
+Dans services/metadataFetcher.ts :
+- Implémente une queue de requêtes avec concurrence limitée (max 3 simultanées)
+- Cache LRU en mémoire (max 200 entrées) avec TTL de 1h
+- Persistance du cache dans AsyncStorage (clé 'metadata_cache')
+
+Thumbnails :
+YouTube :
+  - hqdefault : https://img.youtube.com/vi/{id}/hqdefault.jpg
+  - maxresdefault : https://img.youtube.com/vi/{id}/maxresdefault.jpg (fallback sur hqdefault si 404)
+Vimeo :
+  - API : https://vimeo.com/api/v2/video/{id}.json → thumbnail_large
+Dailymotion :
+  - https://www.dailymotion.com/thumbnail/video/{id}
+
+Composant SmartThumbnail.tsx :
+- Props : videoId, source, width, height, borderRadius
+- Affiche un skeleton animé (shimmer effect avec LinearGradient) pendant le chargement
+- Tente maxres → hq → fallback placeholder
+- Met en cache l'URL résolue localement
+- Supporte un overlay slot (children) pour badges durée/source
+
+Composant SourceBadge.tsx :
+- Icônes SVG inline pour YouTube (rouge), Vimeo (bleu), Dailymotion (orange), autres (gris)
+- Design pill compact, fond semi-transparent
+
+Génère aussi un hook usePrefetchPlaylist(playlistId) qui précharge les thumbnails de toutes les vidéos d'une playlist en arrière-plan quand on entre sur l'écran.

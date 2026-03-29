@@ -1,0 +1,33 @@
+Crée le composant phare de l'app VideoHub : la vue empilable (StackedPlaylistView.tsx).
+
+CONCEPT VISUEL :
+Chaque carte de vidéo est empilée en perspective 3D. On voit la carte du dessus au premier plan (taille quasi plein écran), et les cartes suivantes dépassent légèrement en bas, décalées vers le bas et légèrement rétrécies en perspective, créant un effet de profondeur. L'utilisateur swipe vers le haut pour "dépiler" et passer à la vidéo suivante (la carte part vers le haut avec un effet de lancer), ou swipe vers le bas pour revenir. On doit deviner la vidéo juste dessous (thumbnail visible sur ~40-60px).
+
+IMPLÉMENTATION avec react-native-reanimated 3 et react-native-gesture-handler :
+
+1. useStackedCarousel hook :
+   - Paramètres : videos[], currentIndex, cardHeight, visibleCards (défaut 3)
+   - Retourne : position interpolée pour chaque carte (translateY, scale, opacity, perspective)
+   - Formule de position carte N : translateY = N * 18, scale = 1 - N * 0.05, opacity = 1 - N * 0.15
+   - Valeurs d'interpolation : shared values Reanimated animées vers cibles
+
+2. StackedCard composant :
+   - Taille : largeur = 100% - 32px de marge, hauteur ≈ 72% de la hauteur d'écran
+   - Thumbnail plein fond (ImageBackground)
+   - Dégradé en bas : noir transparent → titre + source badge
+   - Shadow elevation croissante pour la carte du dessus
+   - Transformation 3D : perspective(1200), rotateX légère (≈2-3°) pour les cartes du dessous
+
+3. Gesture PanGesture (vertical) sur la carte du dessus :
+   - Swipe UP : si distance > seuil (120px) → lancer la carte vers le haut (timing 300ms ease-out, puis reset invisible en bas) + les autres cartes montent d'un cran
+   - Swipe DOWN : retour carte précédente
+   - Pendant le drag : toutes les cartes suivent en temps réel (interpolation live de leurs positions)
+   - Résistance si première/dernière carte (rubber band effect)
+
+4. StackedPlaylistView.tsx :
+   - Fond : couleur du thème (anthracite ou blanc)
+   - Compteur en haut : "3 / 12" avec barre de progression linéaire fine
+   - Les 3 cartes visibles (4e en opacité 0 pour préchargement)
+   - Aucun scroll natif — tout géré par les gestes
+
+Optimisations : memo sur les cartes inférieures, runOnJS uniquement pour le changement d'index.

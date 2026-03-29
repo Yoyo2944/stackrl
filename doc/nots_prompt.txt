@@ -1,0 +1,6 @@
+Notes d'usage
+Quelques conseils pour utiliser ces prompts efficacement :
+Ordre strict : les étapes 1→4 sont un prérequis absolu avant tout le reste. Ne saute pas les fondations.
+Étape 9 en priorité absolue : si tu veux prototyper vite le différenciateur de l'app, tu peux faire les étapes 1-3 en version allégée puis aller directement à l'étape 9 avec des données mockées.
+Itération : chaque prompt peut être suivi d'un prompt de raffinement — par ex. "Le swipe de l'étape 9 n'est pas assez fluide, voici le code actuel, améliore la physique du geste avec des valeurs spring plus naturelles."
+L'étape 14 (web/Next.js) est totalement indépendante et peut attendre que le mobile soit stable.

@@ -1,0 +1,36 @@
+Configure VideoHub pour fonctionner également sur le web via Expo Web + Next.js.
+
+1. CONFIGURATION EXPO WEB :
+Dans app.json : "web": { "bundler": "metro", "output": "server" }
+Installe @expo/next-adapter si nécessaire.
+Vérifie que toutes les APIs natives ont un fallback web :
+- expo-haptics → no-op sur web
+- expo-screen-orientation → CSS media queries
+- expo-blur → backdrop-filter: blur() CSS
+- AsyncStorage → localStorage wrapper
+
+2. ADAPTATIONS RESPONSIVE :
+Crée un hook useBreakpoint() :
+- mobile : < 768px
+- tablet : 768–1024px
+- desktop : > 1024px
+
+Adapte les layouts :
+- Mobile : navigation tabs en bas (actuel)
+- Tablet : sidebar navigation à gauche (largeur 240px)
+- Desktop : sidebar 280px + contenu principal + panel détail à droite
+
+Pour la vue empilée sur desktop :
+- Les cartes font 480px de largeur max, centrées
+- Les gestes souris : scroll = navigation entre cartes, hover = légère élévation de la carte active
+
+3. CSS-IN-JS pour le web :
+Utilise StyleSheet.create avec les valeurs du design system.
+Ajoute des media queries CSS pour les breakpoints via StyleSheet.create({ container: { '@media (min-width: 768px)': { flexDirection: 'row' } } }).
+
+4. SEO (si rendu serveur) :
+- Head meta tags via expo-head
+- Titres dynamiques par playlist
+- Open Graph pour le partage de playlists
+
+Génère un fichier de configuration Vercel (vercel.json) pour le déploiement.

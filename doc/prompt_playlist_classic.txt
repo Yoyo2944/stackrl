@@ -1,0 +1,29 @@
+Crée l'écran de playlist en vue classique (mode 'list') dans app/playlist/[id].tsx.
+
+Header de la playlist :
+- Image de couverture (première vidéo) en fond avec blur + dégradé
+- Nom et description de la playlist
+- Nombre de vidéos + durée totale
+- Badges catégorie
+- Boutons : modifier, partager, toggle vue (liste ↔ empilée) — ce dernier est primordial
+
+Cards de vidéo dans la liste (composant VideoCard.tsx) :
+- Thumbnail 16:9 avec durée en badge bas-droit (fond noir semi-transparent, coins arrondis)
+- Badge source en bas-gauche (icône plateforme + nom)
+- Titre sur 2 lignes max
+- Indicateur de progression si partiellement regardée
+- Actions long-press : supprimer de la playlist, déplacer, partager le lien
+- Swipe-to-delete avec animation de sortie (Reanimated)
+
+Interaction :
+- Tap → navigation vers app/video/[id]
+- Long press → menu contextuel bottom sheet
+- Drag & drop pour réordonner (react-native-draggable-flatlist ou implémentation Reanimated)
+
+Composant EmptyState si la playlist est vide :
+- Illustration SVG inline (simple, épurée)
+- Message d'encouragement
+- Bouton "Ajouter une vidéo" qui ouvre la modal
+
+Anime l'apparition des cards (stagger animation : chaque card entre avec un délai de 50ms).
+Le toggle vue liste/empilée doit être un bouton flottant visible en permanence (FAB style), avec une animation de transition entre les deux modes.

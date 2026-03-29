@@ -1,0 +1,33 @@
+Mets en place la navigation complète de l'app VideoHub avec Expo Router.
+
+Structure des routes :
+app/
+  _layout.tsx         → Root layout (theme provider, gesture handler)
+  (tabs)/
+    _layout.tsx       → Tab navigator personnalisé
+    index.tsx         → Accueil (toutes les playlists)
+    search.tsx        → Recherche
+    favorites.tsx     → Favoris
+  playlist/
+    [id].tsx          → Détail d'une playlist
+  video/
+    [id].tsx          → Lecteur vidéo plein écran
+  modals/
+    add-video.tsx     → Modal ajout de vidéo
+    create-playlist.tsx → Modal création playlist
+
+Tab bar personnalisée :
+- Fond semi-transparent avec expo-blur (BlurView)
+- Icônes SVG inline (pas de lib d'icônes externe)
+- Indicateur actif : pill animé avec Reanimated
+- Badge de compte sur l'onglet favoris
+
+Header global :
+- Logo "VIDEOHUB" avec "HUB" en accent coloré
+- Bouton search (icône) à droite
+- Avatar utilisateur (initiales dans un cercle coloré)
+- Bouton dark/light mode
+
+Sur l'écran index.tsx, pose la structure de base : FlatList de sections (catégorie + nom de playlist), chaque section contenant les cards de playlist. Les cards sont des placeholders pour l'instant (rectangle gris avec titre).
+
+Assure-toi que la navigation fonctionne entre tous les écrans, avec des transitions fluides (Expo Router shared element si possible).

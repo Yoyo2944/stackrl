@@ -1,0 +1,33 @@
+Crée le flux complet d'ajout d'une vidéo dans VideoHub.
+
+Modal add-video.tsx :
+- Champ URL avec paste automatique depuis le presse-papiers (expo-clipboard)
+- Indicateur de source détectée en temps réel (logo YouTube/Vimeo/etc.)
+- Preview de la miniature si URL valide (Image avec skeleton loader)
+- Champ titre éditable (pré-rempli depuis les metadata)
+- Sélecteur de playlist (liste scrollable, option "Nouvelle playlist")
+- Bouton Ajouter animé (désactivé si URL invalide)
+
+Service src/services/videoParser.ts :
+Crée des fonctions pour parser et valider les URLs des plateformes suivantes :
+- YouTube : formats youtu.be/ID, youtube.com/watch?v=ID, youtube.com/shorts/ID
+- Vimeo : vimeo.com/ID
+- Dailymotion : dailymotion.com/video/ID
+- Twitter/X : x.com/user/status/ID (vidéos natives)
+- Instagram : instagram.com/reel/ID (lien direct)
+- Tout autre lien (type 'other')
+
+Pour chaque plateforme, extraire :
+- L'ID de la vidéo
+- L'URL de la miniature (thumbnail URL standardisée)
+- L'URL d'embed
+
+Service src/services/metadataFetcher.ts :
+- Utilise l'API oEmbed de YouTube (youtube.com/oembed?url=...) et Vimeo pour récupérer titre et durée
+- Fallback sur Open Graph tags (fetch + parse <meta og:title> etc.)
+- Cache des résultats en mémoire
+
+Ajoute une validation avec feedback :
+- URL invalide → shake animation + message d'erreur
+- URL valide → animation de confirmation (scale bounce sur la preview)
+- Timeout réseau → état d'erreur avec bouton réessayer

@@ -1,0 +1,28 @@
+Effectue un audit complet et améliore VideoHub sur ces 4 axes :
+
+1. PERFORMANCES :
+- Implémente FlashList (Shopify) à la place de FlatList pour les listes de vidéos et playlists
+- Lazy loading des thumbnails avec expo-image (meilleur caching que Image)
+- Utilise React.memo et useCallback systématiquement sur les composants de liste
+- Profiling : identifie et corrige les re-renders inutiles avec why-did-you-render en dev
+- Réduis la taille du bundle : vérifie les imports tree-shakeable
+
+2. ACCESSIBILITÉ :
+- accessibilityLabel sur tous les éléments interactifs
+- accessibilityRole correct (button, image, header...)
+- Support reduceMotion : if AccessibilityInfo.isReduceMotionEnabled → désactive les animations de transition et remplace par des fades simples
+- Contraste couleurs : vérifie que tous les textes passent WCAG AA
+- Support VoiceOver/TalkBack : ordres de lecture cohérents
+
+3. GESTION D'ERREURS :
+- Error Boundary global avec écran de fallback élégant
+- Toast notifications pour les erreurs réseau (composant Toast.tsx, animation slide depuis le bas, auto-dismiss 3s)
+- État de chargement global accessible via useLoadingStore
+
+4. ANIMATIONS SYSTÈME :
+- Animations d'entrée page cohérentes (fade + slide 8px vers le haut, 200ms)
+- Press state sur tous les éléments tappables (scale 0.96, 100ms)
+- Skeleton screens pour tous les états de chargement (pas de spinner)
+- Transitions de navigation fluides (pas de flash blanc entre les écrans)
+
+Génère également un fichier PERFORMANCE.md documentant les choix techniques et les métriques cibles (TTI < 1s, 60fps en scroll, 60fps carousel).

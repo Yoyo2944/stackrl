@@ -1,0 +1,40 @@
+ Files created
+
+  ┌────────────────────────────────┬────────────────────────────────────────────────────────────────────────────────────────────┐
+  │              File              │                                            Role                                            │
+  ├────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ src/constants/theme.ts         │ Full design tokens — colors (dark/light), typography, spacing (4px scale), radius, shadows │
+  ├────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ src/context/ThemeContext.tsx   │ ThemeContext + ThemeProvider + useThemeContext()                                           │
+  ├────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ src/components/ThemedView.tsx  │ `<ThemedView surface="background                                                           │
+  ├────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ src/components/ThemedText.tsx  │ `<ThemedText variant="display                                                              │
+  ├────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ src/components/ThemeToggle.tsx │ Ionicons sun/moon button, triggers haptic feedback                                         │
+  ├────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ src/components/index.ts        │ Barrel export                                                                              │
+  └────────────────────────────────┴────────────────────────────────────────────────────────────────────────────────────────────┘
+
+  Files modified
+
+  ┌────────────────────────┬──────────────────────────────────────────────────────────────┐
+  │          File          │                            Change                            │
+  ├────────────────────────┼──────────────────────────────────────────────────────────────┤
+  │ src/constants/index.ts │ Re-exports from theme.ts; keeps COLORS backward-compat alias │
+  ├────────────────────────┼──────────────────────────────────────────────────────────────┤
+  │ src/hooks/useTheme.ts  │ Now reads from ThemeContext, returns full Theme object       │
+  ├────────────────────────┼──────────────────────────────────────────────────────────────┤
+  │ app/_layout.tsx        │ Wrapped with <ThemeProvider>, ThemeToggle in headerRight     │
+  └────────────────────────┴──────────────────────────────────────────────────────────────┘
+
+  Architecture
+
+  Zustand (useAppStore.settings.theme)  ← persisted to AsyncStorage
+           ↓
+  ThemeProvider (buildTheme(mode))       ← memoized Theme object
+           ↓
+  useTheme() / ThemedView / ThemedText   ← consume colors, spacing, type
+
+  The Zustand store remains the single source of truth — ThemeToggle calls updateSettings({ theme }) which triggers a re-render of ThemeProvider, rebuilding the theme object. No duplicate AsyncStorage persistence needed since Zustand's persist
+  middleware already handles it.

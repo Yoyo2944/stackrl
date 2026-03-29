@@ -1,0 +1,49 @@
+Voici le récapitulatif complet de ce qui a été généré :
+
+  ---
+  Structure du projet /Users/steven/Dev/stackrl
+
+  stackrl/
+  ├── app/                    ← Routes Expo Router
+  │   ├── _layout.tsx         ← Root layout (GestureHandler + Stack Navigator)
+  │   └── index.tsx           ← Écran d'accueil
+  ├── src/
+  │   ├── components/         ← (vide, prêt à remplir)
+  │   ├── constants/index.ts  ← COLORS, SPACING, FONT_SIZES, RADIUS, BREAKPOINTS
+  │   ├── hooks/useTheme.ts   ← Hook lecture du thème depuis le store
+  │   ├── services/urlParser.ts ← Parsing YouTube / Vimeo / Dailymotion
+  │   ├── stores/useAppStore.ts ← Store Zustand persisté (AsyncStorage)
+  │   ├── types/index.ts      ← Video, Playlist, AppSettings
+  │   └── utils/index.ts      ← formatDuration, generateId, formatDate, truncate
+  ├── babel.config.js         ← Plugin Reanimated (doit être en dernier)
+  ├── app.json                ← scheme "stackrl", userInterfaceStyle "automatic"
+  ├── tsconfig.json           ← strict + paths @/*
+  └── package.json            ← main: "expo-router/entry"
+
+  Rôle des dépendances
+
+  ┌───────────────────────────────────────────┬──────────────────────────────────────────────────────────────────────┐
+  │                  Package                  │                                 Rôle                                 │
+  ├───────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────┤
+  │ zustand                                   │ État global léger, sans boilerplate Redux                            │
+  ├───────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────┤
+  │ @react-native-async-storage/async-storage │ Persistance clé-valeur locale (JSON) — utilisé par Zustand persist   │
+  ├───────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────┤
+  │ expo-video                                │ Lecteur vidéo natif haute performance (SDK 51+, remplace expo-av)    │
+  ├───────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────┤
+  │ react-native-reanimated 4                 │ Animations 60/120fps sur le thread UI, non bloquantes                │
+  ├───────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────┤
+  │ react-native-gesture-handler              │ Gestes natifs (swipe, pinch, long press) avec GestureHandlerRootView │
+  ├───────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────┤
+  │ expo-blur                                 │ Effet de flou (iOS BlurView / Android fallback)                      │
+  ├───────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────┤
+  │ expo-haptics                              │ Retours haptiques (impact, notification, sélection)                  │
+  ├───────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────┤
+  │ expo-linear-gradient                      │ Dégradés linéaires natifs pour overlays et arrière-plans             │
+  └───────────────────────────────────────────┴──────────────────────────────────────────────────────────────────────┘
+
+  Point important
+
+  Avec le SDK 55 canary, utilisez npm install --legacy-peer-deps pour les packages hors Expo (ex : zustand) à cause d'un conflit de peer deps sur react-dom.
+
+  Pour lancer : cd /Users/steven/Dev/stackrl && npx expo start

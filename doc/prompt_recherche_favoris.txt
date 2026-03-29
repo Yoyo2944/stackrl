@@ -1,0 +1,27 @@
+Crée les écrans Recherche et Favoris de VideoHub.
+
+ÉCRAN RECHERCHE (app/(tabs)/search.tsx) :
+- SearchBar en haut : champ avec icône loupe, bouton clear, autofocus au mount
+- Recherche instantanée (debounce 200ms) dans les titres et URLs des vidéos
+- Résultats groupés : "Dans les playlists" puis "Toutes les vidéos"
+- Pas de résultat → illustration vide + suggestion "Ajouter des vidéos"
+- Historique de recherche (5 dernières) affiché quand le champ est vide
+- Filtre par source (chips horizontaux : Tout / YouTube / Vimeo / Autres)
+
+ÉCRAN FAVORIS (app/(tabs)/favorites.tsx) :
+- Grid 2 colonnes de VideoCards (miniatures carrées) ou liste (switch en haut à droite)
+- Header : nombre de favoris + bouton "Créer une playlist depuis les favoris"
+- Tri : par date d'ajout / par titre / par source
+- La vue empilée est aussi disponible ici (bouton FAB identique)
+
+Composant SearchBar.tsx :
+- Animation d'apparition au focus : la barre s'étire horizontalement
+- Clear button apparaît avec fade quand il y a du texte
+- Placeholder animé (cycling entre "Chercher une vidéo...", "YouTube, Vimeo...", "Un titre, une URL...")
+
+Hook useSearch(query, filters) :
+- Recherche dans videoStore et playlistStore
+- Retourne : { results: Video[], playlists: Playlist[], isSearching: boolean }
+- Mémoisation avec useMemo
+
+Ajoute aussi un onboarding rapide (3 slides) au premier lancement de l'app, skipable, expliquant les 3 fonctionnalités clés : ajouter un lien, créer une playlist, la vue empilée.

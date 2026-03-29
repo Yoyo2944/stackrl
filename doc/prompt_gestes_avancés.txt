@@ -1,0 +1,28 @@
+Enrichis les interactions gestuelles de la vue empilée VideoHub.
+
+1. Tap sur la carte du dessus → navigation vers le lecteur vidéo
+   - Avant la navigation : la carte se scale up légèrement (1→1.03, 80ms) puis l'écran lecteur slide depuis le bas
+   - Shared Element Transition si Expo Router le permet (image thumbnail → lecteur)
+
+2. Swipe horizontal (gauche/droite) sur la carte du dessus :
+   - Swipe RIGHT → toggle favori : icône cœur apparaît au centre (scale 0→1.2→1, couleur rouge, 400ms), carte rebondit légèrement
+   - Swipe LEFT → retirer de la playlist : la carte part en rotation vers la gauche (rotateZ: -15°, translateX: -400), menu de confirmation bottom sheet
+
+3. Indicateurs visuels pendant le swipe :
+   - Pendant swipe right : overlay vert semi-transparent + icône cœur (opacity proportionnelle à la distance)
+   - Pendant swipe left : overlay rouge semi-transparent + icône corbeille
+   - Ces overlays utilisent interpolate() sur la valeur partagée du pan
+
+4. Long press sur la carte du dessus :
+   - Scale down léger (1→0.97) + vibration haptique
+   - Bottom sheet avec options : Ouvrir, Partager le lien, Déplacer vers une autre playlist, Retirer
+
+5. Effet "peek" automatique au premier lancement de la vue empilée :
+   - La deuxième carte monte légèrement puis redescend (withSequence 300ms) pour signaler qu'il y a des cartes en dessous
+   - Ne se produit qu'une fois par playlist (flag persisté)
+
+6. Geste de zoom (pinch) sur la carte active :
+   - Scale la carte dans les limites [0.9 - 1.0] (pas de zoom out absolu)
+   - Au release : spring back vers scale 1
+
+Utilise useAnimatedGestureHandler et compose les gestes avec simultaneousHandlers et waitFor pour éviter les conflits.

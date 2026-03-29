@@ -1,0 +1,30 @@
+Finalise VideoHub avec les dernières fonctionnalités et prépare la distribution.
+
+1. PWA (Progressive Web App) :
+- manifest.json : icônes, theme_color (#1A1D2E), display standalone
+- Service Worker via expo-sw : cache offline des assets et des thumbnails récemment vus
+- Install prompt personnalisé (bouton "Installer l'app")
+
+2. PARTAGE DE PLAYLISTS :
+Crée un système de partage via liens profonds :
+- Format : videohub://playlist/{id} (deep link natif)
+- Format web : https://votredomaine.com/p/{id}
+- Expo Linking pour gérer l'ouverture depuis un lien externe
+- Share sheet natif (expo-sharing) pour partager une playlist ou une vidéo
+
+3. IMPORT EN LOT :
+- Écran import-batch.tsx : colle plusieurs URLs (une par ligne) ou importe depuis un fichier texte
+- Progress indicator pour l'ajout en lot
+- Résumé : X vidéos ajoutées, Y erreurs
+
+4. WIDGETS (optionnel, iOS 16+ / Android) :
+- expo-widgets pour un widget "Dernière playlist" sur l'écran d'accueil
+- Affiche la miniature de la dernière vidéo consultée
+
+5. BUILD & DISTRIBUTION :
+- eas.json configuré pour 3 profils : development, preview, production
+- Commandes de build : eas build --platform ios/android --profile production
+- OTA updates configurées avec expo-updates (canal "production")
+- Variables d'environnement via .env + expo-constants
+
+Génère un README.md complet avec : setup rapide, architecture, commandes principales, screenshots.

@@ -1,0 +1,33 @@
+Crée l'intégralité du state management de l'app VideoHub avec Zustand + middleware persist (AsyncStorage).
+
+Crée les stores suivants dans src/stores/ :
+
+1. useVideoStore.ts
+   State : videos: Record<string, Video>
+   Actions :
+   - addVideo(video: Video)
+   - removeVideo(id: string)
+   - updateVideo(id: string, updates: Partial<Video>)
+   - toggleFavorite(id: string)
+   - getVideoById(id: string)
+   - getVideosByIds(ids: string[])
+
+2. usePlaylistStore.ts
+   State : playlists: Record<string, Playlist>, activePlaylistId: string | null
+   Actions :
+   - createPlaylist(data: Omit<Playlist, 'id' | 'createdAt'>)
+   - deletePlaylist(id: string)
+   - updatePlaylist(id: string, updates: Partial<Playlist>)
+   - addVideoToPlaylist(playlistId: string, videoId: string)
+   - removeVideoFromPlaylist(playlistId: string, videoId: string)
+   - reorderVideos(playlistId: string, fromIndex: number, toIndex: number)
+   - setViewMode(playlistId: string, mode: 'list' | 'stack')
+   - setActivePlaylist(id: string)
+
+3. useSettingsStore.ts
+   State : theme, defaultViewMode, isOnboarded
+   Actions : setTheme, setDefaultViewMode
+
+Configure la persistance avec AsyncStorage pour les 3 stores.
+Génère des données de seed (3 playlists avec 4-5 vidéos chacune, différentes sources) pour les tests.
+Crée un hook useHydration() pour gérer le chargement initial et afficher un splash screen pendant la réhydratation.
