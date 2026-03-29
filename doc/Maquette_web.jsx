@@ -67,7 +67,7 @@ return (
             <div className="bg-indigo-600 p-2 rounded-lg">
                 <Video className="text-white" size={24} />
             </div>
-            <h1 className="text-xl font-bold tracking-tight text-indigo-900">VideoHub</h1>
+            <h1 className="text-xl font-bold tracking-tight text-indigo-900">stackrl</h1>
         </div>
 
         <nav className="space-y-2 flex-1">

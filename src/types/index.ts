@@ -18,7 +18,7 @@ export interface Playlist {
   name: string;
   description: string;
   category: string;
-  videos: Video[];
+  videoIds: string[];
   viewMode: ViewMode;
   createdAt: string; // ISO date
   coverImage?: string;
@@ -27,4 +27,5 @@ export interface Playlist {
 export interface AppSettings {
   theme: Theme;
   defaultViewMode: ViewMode;
+  isOnboarded: boolean;
 }

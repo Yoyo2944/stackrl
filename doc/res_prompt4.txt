@@ -1,0 +1,45 @@
+Fichiers créés
+src/stores/useVideoStore.ts
+Store normalisé Record<string, Video> persisté sous la clé stackrl-videos. getVideoById / getVideosByIds sont des sélecteurs synchrones (via get()), pas des actions qui modifient le state.
+
+src/stores/usePlaylistStore.ts
+Store Record<string, Playlist> + activePlaylistId, clé stackrl-playlists. createPlaylist retourne l'id généré pour pouvoir naviguer directement après création. addVideoToPlaylist est idempotent (ignore si la vidéo est déjà présente).
+
+src/stores/useSettingsStore.ts
+Store léger, clé stackrl-settings. Ajoute isOnboarded par rapport à l'ancien useAppStore.
+
+src/stores/seed.ts
+14 vidéos réparties sur 4 sources (YouTube, Vimeo, Dailymotion) dans 3 playlists : Tech Talks (5 vidéos, list), Nature & Voyages (5 vidéos, stack), Musique (4 vidéos, list).
+
+src/hooks/useHydration.ts
+Attend les 3 stores, gère les cas limites (déjà hydraté au render initial, hydratation entre render et useEffect).
+
+src/stores/index.ts
+Barrel export.
+
+Fichier modifié
+src/types/index.ts
+
+Playlist.videos: Video[] → Playlist.videoIds: string[] (architecture normalisée)
+AppSettings + isOnboarded: boolean
+Usage du hook de hydratation dans le layout racine
+
+// app/_layout.tsx
+import { useHydration } from '@/hooks/useHydration'
+
+export default function RootLayout() {
+  const hydrated = useHydration()
+  if (!hydrated) return <SplashScreen />
+  return <Stack />
+}
+Charger les seed data (dev uniquement)
+
+import { useVideoStore, usePlaylistStore, seedVideos, seedPlaylists } from '@/stores'
+
+// une seule fois au démarrage, ex: dans _layout.tsx
+const { videos, addVideo } = useVideoStore()
+if (Object.keys(videos).length === 0) {
+  Object.values(seedVideos).forEach(addVideo)
+  Object.values(seedPlaylists).forEach((p) => usePlaylistStore.getState().createPlaylist(p))
+}
+Note : L'ancien useAppStore.ts est conservé intact — il faudra mettre à jour les écrans existants pour migrer vers les 3 nouveaux stores.

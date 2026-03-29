@@ -1,0 +1,86 @@
+:::writing{variant=“standard” id=“48291”}
+You are a senior iOS + React Native engineer.
+
+I am building an app called Stackrl, made with Expo + React Native.
+
+The goal is to implement an iOS Share Extension so that when a user taps:
+
+Share → Stackrl
+
+from apps like Safari, YouTube, Instagram, etc., the extension receives a shared URL and sends it to the main app.
+
+⸻
+
+PROJECT CONTEXT
+	•	Expo project already exists
+	•	Using Expo Dev Client (not Expo Go)
+	•	iOS target only for now
+	•	React Native frontend
+	•	Backend API already exists
+	•	We only need to capture shared URLs
+
+⸻
+
+WHAT I WANT YOU TO BUILD
+
+Create a complete iOS Share Extension implementation that:
+	1.	Appears inside the iOS Share Sheet as “Stackrl”
+	2.	Accepts shared content of type:
+	•	public.url
+	•	public.text
+	3.	Extracts the URL from the shared item
+	4.	Stores the URL temporarily using App Groups shared container
+	5.	Opens the main Stackrl app via deep link:
+stackrl://import
+	6.	Passes the shared URL to the main app
+	7.	Clears temporary storage afterward
+
+⸻
+
+REQUIREMENTS
+	•	Use Swift
+	•	Use modern iOS APIs
+	•	Compatible with Expo prebuild workflow
+	•	Provide all required files:
+	•	ShareViewController.swift
+	•	Info.plist configuration
+	•	App Group setup
+	•	entitlements configuration
+	•	deep linking configuration
+	•	Explain where files must be placed in the iOS folder
+	•	Include Xcode setup steps
+	•	Include required modifications after expo prebuild
+
+⸻
+
+REACT NATIVE SIDE
+
+Also generate:
+	•	React Native code that listens for incoming shared URLs
+	•	Deep linking configuration
+	•	Example hook:
+useSharedUrl()
+
+⸻
+
+IMPORTANT
+
+Keep the extension minimal:
+	•	No UI
+	•	Auto-import behavior
+	•	Close extension immediately after transfer
+
+⸻
+
+OUTPUT FORMAT
+
+Provide:
+	1.	Architecture explanation
+	2.	File tree
+	3.	Full Swift code
+	4.	React Native integration code
+	5.	Setup checklist
+
+Do not skip steps.
+Assume I am an experienced developer but new to iOS extensions.
+:::
