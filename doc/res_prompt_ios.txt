@@ -1,0 +1,136 @@
+Architecture
+
+Share Extension (processus séparé)
+  └── reçoit l'URL depuis la feuille de partage iOS
+  └── écrit l'URL dans App Group UserDefaults (group.com.stackrl.app)
+  └── appelle extensionContext.open("stackrl://import?url=...")
+  └── se ferme immédiatement
+
+App principale (Stackrl)
+  └── useSharedUrl() écoute les deep links stackrl://import
+  └── navigue vers /modals/import avec l'URL en paramètre
+  └── l'utilisateur choisit une playlist → la vidéo est ajoutée
+Arborescence des fichiers
+
+ios/
+  Stackrl/
+    Stackrl.entitlements          ← MODIFIÉ : App Group ajouté
+  ShareExtension/                 ← NOUVEAU DOSSIER
+    ShareViewController.swift     ← Logique de l'extension (Swift)
+    Info.plist                    ← Manifeste de l'extension
+    ShareExtension.entitlements   ← App Group pour l'extension
+
+app/
+  _layout.tsx                     ← MODIFIÉ : useSharedUrl branché
+  modals/
+    import.tsx                    ← NOUVEAU : écran d'import
+
+src/hooks/
+  useSharedUrl.ts                 ← NOUVEAU : hook d'écoute deep link
+Configuration Xcode (à faire une seule fois)
+1. Ouvrir le projet
+
+open ios/Stackrl.xcworkspace
+2. Ajouter la cible Share Extension
+File → New → Target
+Choisir Share Extension → Next
+Nom du produit : ShareExtension
+Langage : Swift
+Bundle Identifier : com.stackrl.app.ShareExtension
+Décocher "Activate scheme" quand Xcode le propose → Finish
+3. Remplacer les fichiers générés par les tiens
+Xcode génère des fichiers boilerplate dans ios/ShareExtension/. Il faut les remplacer :
+
+Supprimer le ShareViewController.swift généré → glisser celui de ios/ShareExtension/ShareViewController.swift (déjà créé)
+Supprimer le Info.plist généré → glisser celui de ios/ShareExtension/Info.plist
+Veiller à ce que "Copy items if needed" soit décoché — les fichiers sont déjà au bon endroit.
+
+4. Assigner le fichier d'entitlements
+Sélectionner la cible ShareExtension → onglet Signing & Capabilities :
+
+Cliquer + Capability → ajouter App Groups
+Enregistrer le groupe : group.com.stackrl.app
+Xcode va auto-générer un fichier d'entitlements — mais le tien existe déjà. Il faut donc le pointer manuellement :
+
+Dans Build Settings → chercher CODE_SIGN_ENTITLEMENTS
+Valeur : ShareExtension/ShareExtension.entitlements
+5. Ajouter l'App Group à la cible principale aussi
+Sélectionner la cible Stackrl → Signing & Capabilities :
+
+Ajouter App Groups → activer group.com.stackrl.app
+Le fichier d'entitlements est déjà écrit à ios/Stackrl/Stackrl.entitlements.
+
+6. Définir le déploiement iOS minimum
+Sélectionner la cible ShareExtension → General → Minimum Deployments → iOS 14.0 (identique à la cible principale).
+
+7. Vérifier les Build Settings de l'extension
+Réglage	Valeur
+PRODUCT_BUNDLE_IDENTIFIER	com.stackrl.app.ShareExtension
+SWIFT_VERSION	5.0
+IPHONEOS_DEPLOYMENT_TARGET	14.0
+Après chaque expo prebuild (important)
+Chaque fois que tu lances expo prebuild --clean, le dossier iOS est régénéré. Le dossier ShareExtension/ survivra car Expo ne le touche pas. En revanche, les entitlements de l'app principale sont réinitialisés. Tu devras re-ajouter l'App Group manuellement.
+
+Pour automatiser ça, convertis ton app.json en app.config.ts et ajoute la clé suivante :
+
+
+// app.config.ts
+import { ExpoConfig } from 'expo/config';
+
+const config: ExpoConfig = {
+  // ...colle ici le contenu actuel de ton app.json...
+  ios: {
+    bundleIdentifier: 'com.stackrl.app',
+    entitlements: {
+      'com.apple.security.application-groups': ['group.com.stackrl.app'],
+    },
+  },
+};
+
+export default config;
+Expo écrira ainsi l'App Group dans le fichier d'entitlements automatiquement à chaque prebuild.
+
+Deep Linking — déjà configuré
+Ton ios/Stackrl/Info.plist enregistre déjà le schéma stackrl:// (lignes 29-32). Rien à modifier.
+
+Côté React Native — comment ça fonctionne
+src/hooks/useSharedUrl.ts — écoute les liens stackrl://import?url=... au démarrage froid (app fermée) et à chaud (app en arrière-plan).
+
+app/_layout.tsx — appelle le hook dans AppNavigator et route vers la modale d'import dans les deux cas.
+
+app/modals/import.tsx — reçoit l'URL, affiche la source et l'ID via parseVideoUrl, laisse l'utilisateur choisir une playlist, puis appelle addVideoToPlaylist.
+
+Checklist complète
+
+Côté iOS
+[ ] Ouvrir Stackrl.xcworkspace dans Xcode
+[ ] File → New → Target → Share Extension
+    - Nom : ShareExtension
+    - Bundle ID : com.stackrl.app.ShareExtension
+    - Langage : Swift
+[ ] Remplacer les fichiers générés par ceux de ios/ShareExtension/
+[ ] Cible ShareExtension → Signing & Capabilities → App Groups
+    → group.com.stackrl.app
+[ ] Cible Stackrl → Signing & Capabilities → App Groups
+    → group.com.stackrl.app
+[ ] ShareExtension Build Settings → CODE_SIGN_ENTITLEMENTS
+    → ShareExtension/ShareExtension.entitlements
+[ ] Enregistrer group.com.stackrl.app sur le portail développeur Apple
+    (Certificates, Identifiers & Profiles → App Groups)
+[ ] Enregistrer com.stackrl.app.ShareExtension sur le portail développeur
+
+Côté React Native (déjà fait)
+[x] src/hooks/useSharedUrl.ts
+[x] app/modals/import.tsx
+[x] app/_layout.tsx branché
+
+Build & test
+[ ] Builder avec : expo run:ios --device
+[ ] Ouvrir Safari → partager n'importe quelle URL → Stackrl doit apparaître
+[ ] Taper Stackrl → l'app s'ouvre → la modale d'import s'affiche pré-remplie
+Tester le deep link directement (sans l'extension)
+Avant même de construire l'extension, tu peux valider tout le flux React Native avec :
+
+
+npx uri-scheme open "stackrl://import?url=https%3A%2F%2Fyoutube.com%2Fwatch%3Fv%3DdQw4w9WgXcQ" --ios
+Ou depuis le menu du Simulateur iOS : Device → Open URL.
