@@ -1,0 +1,35 @@
+Done. Here's what was created:
+
+src/hooks/useStackedCarousel.ts
+Manages all animation state and the gesture:
+
+dragY shared value followed by the top card, used to interpolate all lower cards
+currentIndexSV / totalSV — JS-thread props mirrored into shared values so worklets always read the latest values
+Swipe UP > 120 px → withTiming to -screenHeight, then runOnJS(onNext)()
+Swipe DOWN > 120 px → withTiming to +screenHeight, then runOnJS(onPrev)()
+Else → withSpring snap back
+Rubber-band (×0.15) at first and last card
+resetAnimation() — sets dragY = 0 and clears the busy flag; called by the parent
+src/components/StackedPlaylistView.tsx
+StackedCard (internal, memoized for non-top cards):
+
+Positioned absolute at top: 0 — all cards share the same anchor point
+useAnimatedStyle computes per-slot translateY / scale / opacity / rotateX from dragY
+Lower cards interpolate toward their "promoted" position as progress = clamp(-dragY / 120, 0, 1), giving a live follow-through during drag
+slotIndex === 3 (preload) renders at opacity: 0 — starts at baseOpacity = 1 - 3 * 0.15 = 0.55, but actually the slotIndex < VISIBLE_CARDS guard sets it to 0 so it's invisible
+StackedPlaylistView:
+
+useLayoutEffect on currentIndex calls resetAnimation() synchronously before paint — avoids the 1-frame flash where the thrown card would snap back to (0,0)
+Back slots rendered first in JSX (behind), top card last (in front) with GestureDetector
+Counter 3 / 12 + thin linear progress bar at the top
+Container height = CARD_HEIGHT + SLOT_OFFSET * VISIBLE_CARDS so peeking cards have room below
+Usage:
+
+
+import { StackedPlaylistView } from '@/components';
+
+<StackedPlaylistView
+  videos={playlistVideos}
+  initialIndex={0}
+  onVideoPress={(video, index) => router.push(`/video/${video.id}`)}
+/>

@@ -1,8 +1,13 @@
-import { View, Text, FlatList, Pressable, StyleSheet } from 'react-native';
+import { useMemo } from 'react';
+import { View, Text, Image, FlatList, Pressable, StyleSheet } from 'react-native';
 import { useLocalSearchParams, router, Stack } from 'expo-router';
 import { useTheme } from '../../src/hooks/useTheme';
-import { useAppStore } from '../../src/stores/useAppStore';
+import { usePlaylistStore } from '../../src/stores/usePlaylistStore';
+import { useVideoStore } from '../../src/stores/useVideoStore';
+import { StackedCardView } from '../../src/components/playlist/StackedCardView';
 import type { Video } from '../../src/types';
+
+// ─── VideoRow (list mode) ─────────────────────────────────────────────────────
 
 function VideoRow({
   video,
@@ -25,17 +30,17 @@ function VideoRow({
         },
       ]}
     >
-      <View
-        style={[
-          rowStyles.thumb,
-          { backgroundColor: colors.surface, borderRadius: radius.sm },
-        ]}
-      />
+      <View style={[rowStyles.thumbWrap, { borderRadius: radius.sm, backgroundColor: colors.surface }]}>
+        {video.thumbnail ? (
+          <Image
+            source={{ uri: video.thumbnail }}
+            style={rowStyles.thumb}
+            resizeMode="cover"
+          />
+        ) : null}
+      </View>
       <View style={rowStyles.info}>
-        <Text
-          style={[rowStyles.title, { color: colors.text }]}
-          numberOfLines={2}
-        >
+        <Text style={[rowStyles.title, { color: colors.text }]} numberOfLines={2}>
           {video.title}
         </Text>
         <Text style={[rowStyles.meta, { color: colors.textMuted }]}>
@@ -49,10 +54,20 @@ function VideoRow({
   );
 }
 
+// ─── PlaylistScreen ───────────────────────────────────────────────────────────
+
 export default function PlaylistScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { colors, radius } = useTheme();
-  const playlist = useAppStore((s) => s.playlists.find((p) => p.id === id));
+
+  const playlist = usePlaylistStore((s) => s.playlists[id]);
+  // Select the raw videos map (stable reference) and derive the list with useMemo
+  // to avoid creating a new array on every Zustand snapshot.
+  const videosMap = useVideoStore((s) => s.videos);
+  const videos = useMemo<Video[]>(
+    () => (playlist ? playlist.videoIds.flatMap((vid) => (videosMap[vid] ? [videosMap[vid]] : [])) : []),
+    [playlist, videosMap],
+  );
 
   if (!playlist) {
     return (
@@ -64,27 +79,42 @@ export default function PlaylistScreen() {
     );
   }
 
+  // ── Stack mode: full-screen card carousel ──────────────────────────────────
+  if (playlist.viewMode === 'stack') {
+    return (
+      <>
+        <Stack.Screen options={{ title: playlist.name }} />
+        <StackedCardView
+          videos={videos}
+          onVideoPress={(video) => router.push(`/video/${video.id}`)}
+        />
+      </>
+    );
+  }
+
+  // ── List mode ──────────────────────────────────────────────────────────────
   return (
     <>
       <Stack.Screen options={{ title: playlist.name }} />
       <View style={[styles.root, { backgroundColor: colors.background }]}>
-        {/* Header card */}
+        {/* Header */}
         <View
           style={[
             styles.header,
             { backgroundColor: colors.surface, borderBottomColor: colors.border },
           ]}
         >
-          <View
-            style={[
-              styles.cover,
-              { backgroundColor: colors.card, borderRadius: radius.lg },
-            ]}
-          />
+          <View style={[styles.cover, { backgroundColor: colors.card, borderRadius: radius.lg }]}>
+            {playlist.coverImage ? (
+              <Image
+                source={{ uri: playlist.coverImage }}
+                style={StyleSheet.absoluteFill}
+                resizeMode="cover"
+              />
+            ) : null}
+          </View>
           <View style={styles.headerInfo}>
-            <Text style={[styles.name, { color: colors.text }]}>
-              {playlist.name}
-            </Text>
+            <Text style={[styles.name, { color: colors.text }]}>{playlist.name}</Text>
             {playlist.description ? (
               <Text
                 style={[styles.description, { color: colors.textSecondary }]}
@@ -105,14 +135,13 @@ export default function PlaylistScreen() {
                 </Text>
               </View>
               <Text style={[styles.count, { color: colors.textMuted }]}>
-                {playlist.videos.length} vidéo
-                {playlist.videos.length !== 1 ? 's' : ''}
+                {videos.length} vidéo{videos.length !== 1 ? 's' : ''}
               </Text>
             </View>
           </View>
         </View>
 
-        {/* Add video button */}
+        {/* Add video */}
         <Pressable
           onPress={() =>
             router.push({ pathname: '/modals/add-video', params: { playlistId: id } })
@@ -127,7 +156,7 @@ export default function PlaylistScreen() {
 
         {/* Video list */}
         <FlatList
-          data={playlist.videos}
+          data={videos}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <VideoRow
@@ -150,18 +179,12 @@ export default function PlaylistScreen() {
   );
 }
 
+// ─── Styles ───────────────────────────────────────────────────────────────────
+
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-  },
-  notFound: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  notFoundText: {
-    fontSize: 16,
-  },
+  root: { flex: 1 },
+  notFound: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  notFoundText: { fontSize: 16 },
   header: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -169,39 +192,14 @@ const styles = StyleSheet.create({
     gap: 12,
     borderBottomWidth: 0.5,
   },
-  cover: {
-    width: 72,
-    height: 72,
-  },
-  headerInfo: {
-    flex: 1,
-    gap: 6,
-  },
-  name: {
-    fontSize: 18,
-    fontWeight: '700',
-    letterSpacing: -0.3,
-  },
-  description: {
-    fontSize: 13,
-    lineHeight: 18,
-  },
-  meta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  categoryBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 3,
-  },
-  categoryText: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  count: {
-    fontSize: 12,
-  },
+  cover: { width: 72, height: 72, overflow: 'hidden' },
+  headerInfo: { flex: 1, gap: 6 },
+  name: { fontSize: 18, fontWeight: '700', letterSpacing: -0.3 },
+  description: { fontSize: 13, lineHeight: 18 },
+  meta: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  categoryBadge: { paddingHorizontal: 10, paddingVertical: 3 },
+  categoryText: { fontSize: 12, fontWeight: '600' },
+  count: { fontSize: 12 },
   addBtn: {
     marginHorizontal: 16,
     marginVertical: 12,
@@ -210,50 +208,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  addBtnText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  list: {
-    padding: 16,
-    gap: 8,
-    paddingBottom: 40,
-  },
-  empty: {
-    paddingVertical: 40,
-    alignItems: 'center',
-  },
-  emptyText: {
-    fontSize: 14,
-  },
+  addBtnText: { color: '#FFFFFF', fontSize: 14, fontWeight: '600' },
+  list: { padding: 16, gap: 8, paddingBottom: 40 },
+  empty: { paddingVertical: 40, alignItems: 'center' },
+  emptyText: { fontSize: 14 },
 });
 
 const rowStyles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-    gap: 12,
-  },
-  thumb: {
-    width: 80,
-    height: 52,
-  },
-  info: {
-    flex: 1,
-    gap: 4,
-  },
-  title: {
-    fontSize: 14,
-    fontWeight: '500',
-    lineHeight: 19,
-  },
-  meta: {
-    fontSize: 12,
-    textTransform: 'capitalize',
-  },
-  heart: {
-    fontSize: 16,
-  },
+  row: { flexDirection: 'row', alignItems: 'center', padding: 12, gap: 12 },
+  thumbWrap: { width: 80, height: 52, overflow: 'hidden' },
+  thumb: { width: '100%', height: '100%' },
+  info: { flex: 1, gap: 4 },
+  title: { fontSize: 14, fontWeight: '500', lineHeight: 19 },
+  meta: { fontSize: 12, textTransform: 'capitalize' },
+  heart: { fontSize: 16 },
 });

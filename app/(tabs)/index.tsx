@@ -1,7 +1,7 @@
 import { View, Text, FlatList, Pressable, StyleSheet } from 'react-native';
 import { router } from 'expo-router';
 import { useTheme } from '../../src/hooks/useTheme';
-import { useAppStore } from '../../src/stores/useAppStore';
+import { usePlaylistStore } from '../../src/stores/usePlaylistStore';
 
 // ─── Mock data (shown when store is empty) ────────────────────────────────────
 
@@ -125,7 +125,8 @@ function FAB() {
 
 export default function HomeScreen() {
   const { colors } = useTheme();
-  const playlists = useAppStore((s) => s.playlists);
+  const playlistsMap = usePlaylistStore((s) => s.playlists);
+  const playlists = Object.values(playlistsMap);
 
   const sections: Section[] =
     playlists.length > 0
@@ -133,7 +134,7 @@ export default function HomeScreen() {
           playlists.reduce<Record<string, SectionItem[]>>((acc, p) => {
             const cat = p.category || 'Autre';
             if (!acc[cat]) acc[cat] = [];
-            acc[cat].push({ id: p.id, name: p.name, count: p.videos.length });
+            acc[cat].push({ id: p.id, name: p.name, count: p.videoIds.length });
             return acc;
           }, {})
         ).map(([category, ps]) => ({ category, playlists: ps }))

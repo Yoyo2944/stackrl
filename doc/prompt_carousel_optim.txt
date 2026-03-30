@@ -1,0 +1,173 @@
+Remplace complètement le composant de vue empilée existant par une nouvelle implémentation.
+Voici exactement ce que je veux, sans interprétation.
+
+─────────────────────────────────────────
+CONCEPT VISUEL
+─────────────────────────────────────────
+
+Imagine un paquet de cartes à jouer posé en éventail léger sur une table.
+Quand l'utilisateur entre dans la vue empilée d'une playlist, il voit :
+
+- La carte du dessus (vidéo courante) : grande, occupe ~62% de la hauteur d'écran,
+  bien visible
+- Les cartes suivantes : empilées derrière, décalées vers le bas de ~90px chacune,
+  légèrement plus petites (scale réduit de 4% par niveau) et plus sombres (overlay
+  noir croissant : 0%, 15%, 30% pour les cartes 2, 3, 4)
+- Le décalage de 90px est intentionnel et suffisant pour qu'on voie clairement,
+  sur chaque carte en dessous :
+    → la partie haute de la thumbnail (environ 50–55px de l'image visible)
+    → le titre de la vidéo affiché en bas de cette zone exposée, sur une ligne,
+       tronqué avec ellipsis si trop long
+    → un fond semi-transparent (rgba(0,0,0,0.55)) derrière le titre pour lisibilité
+- Maximum 4 cartes visibles simultanément, les autres sont hors écran
+
+Schéma de ce qu'on voit à l'écran (vue simplifiée) :
+
+  ┌─────────────────────────────┐  ← carte 1 (active, ~62% hauteur écran)
+  │                             │
+  │   [thumbnail pleine]        │
+  │                             │
+  │   Titre vidéo 1 + source    │  ← zone info en bas de la carte active
+  └─────────────────────────────┘
+  ┌─────────────────────────────┐  ← carte 2 : ~50px de thumbnail visible
+  │  ░░░ thumbnail vidéo 2 ░░░  │     + titre "Vidéo 2" par-dessus
+  └─────────────── Vidéo 2 ─────┘
+  ┌─────────────────────────────┐  ← carte 3 : ~50px de thumbnail visible
+  │  ░░░ thumbnail vidéo 3 ░░░  │     + titre "Vidéo 3" par-dessus
+  └─────────────── Vidéo 3 ─────┘
+
+Chaque carte contient :
+- La thumbnail de la vidéo en ImageBackground plein fond
+- Un dégradé bas : transparent → rgba(0,0,0,0.75)
+- En bas de la carte : icône source (YouTube/Vimeo...) + titre sur 2 lignes max
+  + durée (uniquement pour la carte active ; pour les cartes empilées dessous,
+  le titre est affiché dans la zone exposée du haut, sur 1 ligne, pas en bas)
+
+Zone exposée des cartes inférieures (les ~90px visibles) :
+- La thumbnail est visible sur toute la largeur en fond (partie haute de l'image)
+- Par-dessus : un bandeau semi-transparent en bas de cette zone (hauteur ~28px)
+  contenant le titre de la vidéo en blanc, fontSize 13, fontWeight 500,
+  1 ligne max avec ellipsis
+- Ce bandeau ne remplace pas le bas de la carte complète — il est positionné
+  en absolute bottom:0 dans la zone exposée uniquement
+
+─────────────────────────────────────────
+LES 3 MÉTHODES DE DÉFILEMENT
+─────────────────────────────────────────
+
+Implémente ces 3 modes avec react-native-reanimated 3 et react-native-gesture-handler.
+Ils doivent coexister sans conflit de gestes.
+
+── Méthode 1 : Swipe vertical ──
+
+PanGesture vertical sur la carte du dessus.
+
+SWIPE VERS LE HAUT (carte suivante) :
+- Pendant le drag : la carte suit le doigt (translateY négatif)
+- Les cartes du dessous remontent progressivement vers leurs nouvelles positions
+  (interpolation en temps réel basée sur la distance parcourue)
+- Si distance > 100px au release → la carte part vers le haut (translateY: -800,
+  withTiming 280ms ease-in), les autres montent en withSpring
+- Si distance < 100px au release → rubber band : la carte revient à sa position
+  initiale en withSpring({ damping: 18, stiffness: 200 })
+
+SWIPE VERS LE BAS (carte précédente) :
+- Même logique inversée
+- La carte précédente entre par le haut (translateY: -800 → 0)
+- Rubber band si la 1ère carte est déjà active
+
+── Méthode 2 : Appui long → défilement automatique ──
+
+LongPressGesture (délai: 400ms) sur la carte du dessus.
+
+- Au déclenchement : vibration haptique légère (Haptics.impactAsync LIGHT)
+- L'app commence à défiler automatiquement vers la carte suivante toutes les 1.2s
+- L'animation de chaque transition auto est identique au swipe (carte part vers
+  le haut, les autres montent)
+- Un indicateur visuel apparaît : barre de progression fine en haut de la carte
+  active qui se remplit sur 1.2s (réinitialisée à chaque transition)
+- Au release du doigt → le défilement s'arrête immédiatement, l'animation en cours
+  se termine proprement avant de s'arrêter
+
+── Méthode 3 : Appui fort → défilement rapide ──
+
+Simulé via PressureGesture ou via un PanGesture de pression simulé.
+Étant donné que React Native n'expose pas nativement la force de pression 3D Touch,
+implémente-le ainsi :
+
+Détection : si l'utilisateur appuie long > 800ms (sans bouger), on considère
+que c'est un "appui fort"
+- Au passage en mode "appui fort" : vibration haptique plus forte (MEDIUM)
+- La vitesse de défilement auto passe à 0.4s entre chaque carte (au lieu de 1.2s)
+- Un second indicateur visuel distingue ce mode : la barre de progression devient
+  plus épaisse et change de couleur (accent color)
+- Au release → retour au défilement normal ou arrêt (même logique que méthode 2)
+
+Note : si l'appareil supporte réellement le Force Touch (iPhone 6s–X),
+utilise également forceTouch comme signal de déclenchement du mode rapide.
+
+─────────────────────────────────────────
+COMPTEUR ET NAVIGATION
+─────────────────────────────────────────
+
+En haut de l'écran (au-dessus des cartes) :
+- "Video 3 / 12" — texte simple, couleur secondaire
+- Barre de progression fine sous ce texte (largeur proportionnelle à la position)
+- Bouton retour (←) en haut à gauche → revient à la vue liste de la playlist
+
+─────────────────────────────────────────
+STRUCTURE DU COMPOSANT
+─────────────────────────────────────────
+
+Fichiers à créer ou remplacer :
+
+src/components/playlist/StackedCardView.tsx
+  → Composant principal, reçoit : videos: Video[], initialIndex?: number
+  → Gère les 3 modes de défilement
+  → Rend les 4 cartes visibles + 1 pré-chargée hors écran
+
+src/components/playlist/StackedCard.tsx
+  → Composant carte individuelle
+  → Props : video, position (0=active, 1,2,3=dessous), animatedStyle
+  → Mémorisé avec React.memo
+  → Deux modes de rendu internes selon la prop position :
+      • position === 0 : carte complète (thumbnail plein fond, dégradé bas,
+        titre + source + durée en bas)
+      • position > 0 : même carte complète en dessous, mais seule la zone
+        haute (~90px) est visible grâce au chevauchement — le titre de la vidéo
+        est donc affiché dans cette zone via un View en absolute bottom:0
+        de hauteur 28px, fond rgba(0,0,0,0.55), titre 1 ligne fontSize 13
+
+src/hooks/useStackedDeck.ts
+  → Toute la logique Reanimated ici (shared values, derived values, handlers)
+  → Expose : currentIndex, animatedStyles[], panHandlers, longPressHandler
+  → Gère la pile circulaire (réutilise les composants cartes pour éviter les
+    remounts : ne change que les données, pas les composants)
+
+─────────────────────────────────────────
+CONTRAINTES TECHNIQUES
+─────────────────────────────────────────
+
+- Tout le calcul de position doit se faire sur le thread UI (worklet)
+  → pas de runOnJS sauf pour changer currentIndex après une transition complète
+- Les 4 cartes sont toujours montées (pas de mount/unmount à chaque transition)
+  → on change uniquement les shared values de position et les données vidéo
+- useAnimatedStyle sur chaque carte, pas de style inline calculé en JS
+- Composants cartes : React.memo strict, aucune re-render sauf changement de video prop
+- Le LongPressGesture et le PanGesture doivent être composés avec
+  Gesture.Simultaneous() ou Gesture.Exclusive() selon les conflits observés,
+  en commentant pourquoi tu as choisi l'un ou l'autre
+
+─────────────────────────────────────────
+CE QU'IL NE FAUT PAS FAIRE
+─────────────────────────────────────────
+
+- Pas de ScrollView ou FlatList — tout est géré par les gestes manuels
+- Pas d'animation basée sur useState (tout via shared values)
+- Pas de setTimeout pour les transitions — uniquement withTiming/withSpring
+- Pas de transform 3D complexe (pas de rotateX/perspective) — l'effet
+  de profondeur vient uniquement du scale et de l'overlay sombre
+- Pas de bibliothèque tierce de carousel — implémentation Reanimated pure
+- Ne pas masquer les cartes inférieures avec overflow:hidden sur le container
+  principal — c'est précisément ce chevauchement visible (thumbnail + titre)
+  qui crée l'effet "paquet de cartes"
