@@ -1,0 +1,218 @@
+import React, { useState } from 'react';
+import {
+Search,
+Plus,
+Play,
+MoreHorizontal,
+Home,
+Bookmark,
+Compass,
+Settings,
+Youtube,
+Instagram,
+Facebook,
+Tv,
+ChevronRight,
+Maximize2
+} from 'lucide-react';
+
+const App = () => {
+const [viewMode, setViewMode] = useState('stack'); // 'stack', 'folders', 'cards'
+
+const contents = [
+{ id: 'c1', title: "L'art du minimalisme", platform: "YouTube", source: "youtube", color: "#FF0000", thumbnail: "https://images.unsplash.com/photo-1494438639946-1ebd1d20bf85?w=800" },
+{ id: 'c2', title: "Architecture Brutaliste", platform: "Instagram", source: "instagram", color: "#E1306C", thumbnail: "https://images.unsplash.com/photo-1518005020453-6ec2474b2492?w=800" },
+{ id: 'c3', title: "Web Design 2024", platform: "Facebook", source: "facebook", color: "#1877F2", thumbnail: "https://images.unsplash.com/photo-1581291518066-13a80806497a?w=800" },
+{ id: 'c4', title: "Cinematic Japan", platform: "Vimeo", source: "vimeo", color: "#1AB7EA", thumbnail: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=800" },
+{ id: 'c5', title: "Morning Coffee Flow", platform: "TikTok", source: "tiktok", color: "#000000", thumbnail: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=800" },
+];
+
+// --- DESIGN 1: THE 3D STACK CAROUSEL ---
+const StackView = () => (
+<div className="flex-1 flex flex-col justify-center items-center overflow-hidden p-6 animate-in fade-in duration-700">
+    <div className="relative w-full max-w-[320px] h-[460px] flex items-center justify-center perspective-2000">
+        {contents.map((item, idx) => {
+        const isFirst = idx === 0;
+        return (
+        <div
+                key={item.id}
+                className="absolute w-full h-full rounded-[2.5rem] bg-white shadow-[0_20px_50px_rgba(0,0,0,0.12)] border border-slate-100 overflow-hidden transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)]"
+                style={{
+                transform: `translateY(${idx * -24}px) translateZ(${idx * -50}px) scale(${1 - idx * 0.08})`,
+                zIndex: 50 - idx,
+                opacity: 1 - idx * 0.2
+                }}
+        >
+            <img src={item.thumbnail} className="w-full h-3/5 object-cover" alt="" />
+            <div className="p-6 flex flex-col justify-between h-2/5">
+                <div>
+                    <div className="flex items-center space-x-2 mb-2">
+                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }}></div>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{item.platform}</span>
+                    </div>
+                    <h3 className="text-xl font-bold text-slate-800 leading-tight">{item.title}</h3>
+                </div>
+                <div className="flex justify-between items-center">
+                    <button className="w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-slate-200 active:scale-90 transition-transform">
+                        <Play size={20} fill="white" />
+                    </button>
+                    <button className="p-2 text-slate-300"><MoreHorizontal size={20}/></button>
+                </div>
+            </div>
+        </div>
+        );
+        })}
+    </div>
+</div>
+);
+
+// --- DESIGN 2: THE EXPANDING FOLDERS ---
+const FolderView = () => (
+<div className="flex-1 px-6 pt-10 space-y-4 overflow-y-auto no-scrollbar pb-32 animate-in slide-in-from-bottom-10 duration-700">
+    {['Tendances', 'Design', 'Voyages'].map((cat, catIdx) => (
+    <div key={cat} className="group">
+        <div className="flex justify-between items-center mb-4 px-2">
+            <h2 className="text-lg font-bold text-slate-800">{cat}</h2>
+            <ChevronRight size={18} className="text-slate-400" />
+        </div>
+        <div className="relative h-60 w-full mb-8">
+            {contents.slice(0, 3).map((item, idx) => (
+            <div
+                    key={item.id}
+                    className="absolute left-0 right-0 h-48 rounded-[2rem] border border-white/50 shadow-xl overflow-hidden transition-all duration-500 group-hover:translate-y-[calc(idx*20px)]"
+                    style={{
+                    top: `${idx * 12}px`,
+                    zIndex: 10 - idx,
+                    transform: `scale(${1 - idx * 0.04})`,
+                    background: `linear-gradient(rgba(0,0,0,0), rgba(0,0,0,0.4)), url(${item.thumbnail}) center/cover`
+            }}
+            >
+            <div className="absolute bottom-5 left-6 right-6 flex justify-between items-end">
+                <span className="text-white font-bold text-sm">{item.title}</span>
+                <div className="w-8 h-8 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/30">
+                    <Play size={14} fill="white" />
+                </div>
+            </div>
+        </div>
+        ))}
+    </div>
+</div>
+))}
+</div>
+);
+
+// --- DESIGN 3: FLOATING GRID CARDS ---
+const GridView = () => (
+<div className="flex-1 p-6 grid grid-cols-2 gap-6 overflow-y-auto no-scrollbar pb-32 animate-in zoom-in-95 duration-700">
+    {contents.map((item, idx) => (
+    <div
+            key={item.id}
+            className={`relative rounded-[2.5rem] bg-white p-3 shadow-[0_15px_35px_rgba(0,0,0,0.05)] border border-slate-50 flex flex-col group ${idx % 3 === 0 ? 'col-span-2' : ''}`}
+    >
+    <div className={`relative overflow-hidden rounded-[2rem] ${idx % 3 === 0 ? 'h-48' : 'h-40'}`}>
+    <img src={item.thumbnail} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt="" />
+    <div className="absolute top-3 left-3 bg-white/80 backdrop-blur-md px-3 py-1 rounded-full text-[9px] font-black uppercase text-slate-800 tracking-wider">
+        {item.platform}
+    </div>
+</div>
+<div className="pt-4 pb-2 px-2">
+    <h3 className="font-bold text-slate-800 text-sm leading-snug line-clamp-2">{item.title}</h3>
+</div>
+{/* Visual Stacking elements at bottom */}
+<div className="absolute -bottom-2 left-8 right-8 h-2 bg-white/40 rounded-b-[1.5rem] border-x border-b border-slate-100 z-[-1]"></div>
+<div className="absolute -bottom-4 left-12 right-12 h-2 bg-white/20 rounded-b-[1.5rem] border-x border-b border-slate-100 z-[-2]"></div>
+</div>
+))}
+</div>
+);
+
+return (
+<div className="flex flex-col h-screen bg-[#F8FAFC] text-slate-900 font-sans overflow-hidden select-none">
+
+    {/* Header Premium */}
+    <header className="px-8 pt-10 pb-6 flex justify-between items-center">
+        <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 bg-slate-900 rounded-2xl flex items-center justify-center shadow-2xl shadow-slate-200">
+                <div className="w-5 h-5 relative">
+                    <div className="absolute inset-0 border-2 border-white rounded-sm rotate-6"></div>
+                    <div className="absolute inset-0 bg-white rounded-sm -rotate-6 flex items-center justify-center">
+                        <div className="w-0 h-0 border-t-[3px] border-t-transparent border-l-[5px] border-l-slate-900 border-b-[3px] border-b-transparent ml-0.5"></div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <h1 className="text-xl font-black tracking-tight leading-none lowercase">stackrl</h1>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Premium Aggregate</span>
+            </div>
+        </div>
+        <button className="p-3 bg-white rounded-2xl shadow-sm border border-slate-100 text-slate-400">
+            <Search size={20} />
+        </button>
+    </header>
+
+    {/* Mode Switcher pill style */}
+    <div className="px-8 mb-4">
+        <div className="bg-slate-200/50 p-1.5 rounded-[2rem] flex items-center justify-between">
+            {[
+            { id: 'stack', icon: <Layers size={18} />, label: 'Stack' },
+            { id: 'folders', icon: <Bookmark size={18} />, label: 'Piles' },
+            { id: 'cards', icon: <Compass size={18} />, label: 'Découvrir' }
+            ].map((mode) => (
+            <button
+                    key={mode.id}
+                    onClick={() => setViewMode(mode.id)}
+            className={`flex items-center space-x-2 px-5 py-2.5 rounded-full transition-all duration-300 ${viewMode === mode.id ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+            >
+            {mode.icon}
+            {viewMode === mode.id && <span className="text-xs font-bold">{mode.label}</span>}
+            </button>
+            ))}
+        </div>
+    </div>
+
+    {/* Main Content */}
+    <main className="flex-1 flex flex-col relative overflow-hidden">
+        {viewMode === 'stack' && <StackView />}
+        {viewMode === 'folders' && <FolderView />}
+        {viewMode === 'cards' && <GridView />}
+    </main>
+
+    {/* Navigation Bar Glassmorphism */}
+    <div className="h-28 px-10 pb-6 flex items-center justify-between bg-gradient-to-t from-white via-white/90 to-transparent z-50">
+        <button className="p-3 text-slate-900"><Home size={26} /></button>
+        <button className="p-3 text-slate-300"><Tv size={26} /></button>
+
+        <div className="relative -top-4">
+            <button className="w-16 h-16 bg-slate-900 rounded-[2rem] flex items-center justify-center text-white shadow-2xl shadow-slate-300 rotate-12 hover:rotate-0 transition-all active:scale-95">
+                <Plus size={32} />
+            </button>
+        </div>
+
+        <button className="p-3 text-slate-300"><Settings size={26} /></button>
+        <div className="w-10 h-10 rounded-2xl overflow-hidden shadow-inner border border-slate-100">
+            <img src="https://ui-avatars.com/api/?name=User&background=f1f5f9&color=64748b" alt="Profile" />
+        </div>
+    </div>
+
+    <style>{`
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .perspective-2000 { perspective: 2000px; }
+    @keyframes shimmer {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(300%); }
+    }
+        `}</style>
+</div>
+);
+};
+
+// Simplified Lucide replacements for missing icons if any
+const Layers = ({ size, className }) => (
+<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <polygon points="12 2 2 7 12 12 22 7 12 2" />
+    <polyline points="2 17 12 22 22 17" />
+    <polyline points="2 12 12 17 22 12" />
+</svg>
+);
+
+export default App;
